@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M&A Lead Qualification System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 1200px;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .auth-section {
+            padding: 40px;
+            text-align: center;
+        }
+
+        .main-content {
+            display: none;
+            padding: 40px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .criteria-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 25px 0;
+        }
+
+        .criteria-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .criteria-item {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: center;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e1e8ed;
+        }
+
+        .criteria-item select, .criteria-item input {
+            flex: 1;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-add {
+            background: #28a745;
+            color: white;
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .btn-remove {
+            background: #dc3545;
+            color: white;
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+
+        .results-section {
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            display: none;
+        }
+
+        .result-item {
+            background: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+
+        .result-item.fail {
+            border-left-color: #dc3545;
+        }
+
+        .qualification-result {
+            text-align: center;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .qualified {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .not-qualified {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            .criteria-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="logout-btn" onclick="logout()" style="display: none;" id="logoutBtn">Logout</button>
+            <h1>M&A Lead Qualification System</h1>
+            <p>Automated company verification for your M&A campaigns</p>
+        </div>
+
+        <!-- Authentication Section -->
+        <div class="auth-section" id="authSection">
+            <h2>Access Required</h2>
+            <p style="margin: 20px 0; color: #666;">Enter your access key to continue</p>
+            <div class="input-group" style="max-width: 400px; margin: 0 auto;">
+                <input type="password" id="accessKey" placeholder="Enter your access key" />
+            </div>
+            <button class="btn btn-primary" onclick="authenticate()" style="margin-top: 20px;">
+                Access System
+            </button>
+            <div id="authError" style="color: #dc3545; margin-top: 15px; display: none;">
+                Invalid access key or key has expired. Please contact administrator.
+            </div>
+            
+            <!-- Admin Access -->
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e1e8ed;">
+                <p style="color: #666; font-size: 0.9rem;">System Administrator?</p>
+                <button class="btn btn-secondary" onclick="showAdminLogin()" style="margin-top: 10px; font-size: 14px;">
+                    Admin Panel
+                </button>
+            </div>
+            
+            <!-- Admin Login Modal -->
+            <div id="adminLogin" style="display: none; margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                <h4>Administrator Access</h4>
+                <div class="input-group" style="max-width: 300px; margin: 15px auto;">
+                    <input type="password" id="adminPassword" placeholder="Admin password" />
+                </div>
+                <button class="btn btn-primary" onclick="adminAuthenticate()">Access Admin Panel</button>
+                <button class="btn btn-secondary" onclick="hideAdminLogin()" style="margin-left: 10px;">Cancel</button>
+                <div id="adminError" style="color: #dc3545; margin-top: 10px; display: none;">
+                    Invalid admin password
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Generator Section (Hidden Admin Panel) -->
+        <div class="admin-section" id="adminSection" style="display: none;">
+            <div style="background: #2c3e50; color: white; padding: 20px; margin: -40px -40px 30px -40px;">
+                <h2>🔑 Key Management System</h2>
+                <p>Generate and manage access keys for your team</p>
+            </div>
+            
+            <div class="grid">
+                <div>
+                    <h3>Generate New Key</h3>
+                    <div class="input-group">
+                        <label for="keyPlan">Plan Type</label>
+                        <select id="keyPlan">
+                            <option value="PREMIUM">Premium (Full Access)</option>
+                            <option value="BASIC">Basic (Limited Queries)</option>
+                            <option value="TRIAL">Trial (7 Days)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="keyDuration">Duration (Days)</label>
+                        <input type="number" id="keyDuration" value="30" min="1" max="365" />
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="keyUser">User/Notes (Optional)</label>
+                        <input type="text" id="keyUser" placeholder="e.g., John Doe - Marketing Team" />
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="generateKey()">Generate Key</button>
+                </div>
+                
+                <div>
+                    <h3>Generated Key</h3>
+                    <div id="generatedKey" style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; min-height: 100px; border: 2px dashed #dee2e6;">
+                        <p style="color: #666; text-align: center;">Generated keys will appear here</p>
+                    </div>
+                    
+                    <button class="btn btn-secondary" onclick="copyKey()" id="copyBtn" style="display: none;">
+                        📋 Copy Key
+                    </button>
+                </div>
+            </div>
+            
+            <div style="margin-top: 40px;">
+                <h3>Active Keys</h3>
+                <div id="activeKeys">
+                    <!-- Active keys will be displayed here -->
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn btn-secondary" onclick="exitAdmin()">Exit Admin Panel</button>
+            </div>
+        </div>
+        <div class="main-content" id="mainContent">
+            <div class="grid">
+                <div>
+                    <div class="input-group">
+                        <label for="companyName">Company Name *</label>
+                        <input type="text" id="companyName" placeholder="Enter company name" required />
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="country">Country *</label>
+                        <select id="country" required>
+                            <option value="">Select Country</option>
+                            <option value="UK">United Kingdom</option>
+                            <option value="US">United States</option>
+                            <option value="DE">Germany</option>
+                            <option value="FR">France</option>
+                            <option value="IT">Italy</option>
+                            <option value="ES">Spain</option>
+                            <option value="NL">Netherlands</option>
+                            <option value="CA">Canada</option>
+                            <option value="AU">Australia</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="input-group">
+                        <label for="industry">Industry</label>
+                        <input type="text" id="industry" placeholder="e.g., Technology, Healthcare" />
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="linkedinUrl">LinkedIn URL (Optional)</label>
+                        <input type="url" id="linkedinUrl" placeholder="https://linkedin.com/company/..." />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Custom Criteria Section -->
+            <div class="criteria-section">
+                <div class="criteria-header">
+                    <h3>Qualification Criteria</h3>
+                    <button class="btn btn-add" onclick="addCriteria()">+ Add Criteria</button>
+                </div>
+                <div id="criteriaContainer">
+                    <!-- Default criteria will be added here -->
+                </div>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <button class="btn btn-primary" onclick="qualifyCompany()" style="padding: 15px 40px; font-size: 18px;">
+                    Qualify Company
+                </button>
+            </div>
+
+            <!-- Loading Section -->
+            <div class="loading" id="loadingSection" style="display: none;">
+                <div class="spinner"></div>
+                <p>Analyzing company data...</p>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section" id="resultsSection">
+                <h3>Qualification Results</h3>
+                <div id="qualificationResult"></div>
+                <div id="detailedResults"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Access control - You control these keys
+        const validKeys = {
+            'MAQ-2025-001-PREMIUM': { expires: '2025-07-03', plan: 'Premium' },
+            'MAQ-2025-002-BASIC': { expires: '2025-07-03', plan: 'Basic' },
+            'MAQ-2025-003-TRIAL': { expires: '2025-06-15', plan: 'Trial' }
+        };
+
+        let userPlan = '';
+        let criteria = [];
+        let currentGeneratedKey = '';
+        let keyDatabase = []; // This would be stored in a real database
+        
+        // Admin password - Change this to your own secure password
+        const ADMIN_PASSWORD = 'MAQ_ADMIN_2025!';
+        
+        // API Configuration - Add your API keys here
+        const API_CONFIG = {
+            endole: {
+                key: 'YOUR_ENDOLE_API_KEY_HERE',
+                baseUrl: 'https://api.endole.co.uk/v1',
+                enabled: true
+            },
+            clearbit: {
+                key: 'YOUR_CLEARBIT_API_KEY_HERE', // For non-UK companies
+                baseUrl: 'https://company.clearbit.com/v2',
+                enabled: false
+            },
+            openCorporates: {
+                key: 'YOUR_OPENCORPORATES_API_KEY_HERE',
+                baseUrl: 'https://api.opencorporates.com/v0.4',
+                enabled: false
+            }
+        };
+
+        function authenticate() {
+            const key = document.getElementById('accessKey').value.trim();
+            const keyData = validKeys[key];
+            
+            if (keyData && new Date() < new Date(keyData.expires)) {
+                userPlan = keyData.plan;
+                document.getElementById('authSection').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                document.getElementById('adminSection').style.display = 'none'; // Ensure admin section is hidden
+                document.getElementById('logoutBtn').style.display = 'block';
+                initializeApp();
+                
+                // Log key usage (in real app, this would go to database)
+                console.log(`Key used: ${key} - Plan: ${keyData.plan} - Time: ${new Date()}`);
+            } else {
+                document.getElementById('authError').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('authError').style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Admin Functions
+        function showAdminLogin() {
+            document.getElementById('adminLogin').style.display = 'block';
+        }
+
+        function hideAdminLogin() {
+            document.getElementById('adminLogin').style.display = 'none';
+            document.getElementById('adminPassword').value = '';
+            document.getElementById('adminError').style.display = 'none';
+        }
+
+        function adminAuthenticate() {
+            const password = document.getElementById('adminPassword').value;
+            
+            if (password === ADMIN_PASSWORD) {
+                document.getElementById('authSection').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'none'; // Hide main content
+                document.getElementById('adminSection').style.display = 'block';
+                document.getElementById('logoutBtn').style.display = 'block';
+                hideAdminLogin();
+                loadActiveKeys();
+            } else {
+                document.getElementById('adminError').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('adminError').style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        function generateKey() {
+            const plan = document.getElementById('keyPlan').value;
+            const duration = parseInt(document.getElementById('keyDuration').value);
+            const user = document.getElementById('keyUser').value;
+            
+            // Generate unique key
+            const timestamp = Date.now();
+            const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
+            const keyId = String(Object.keys(validKeys).length + 1).padStart(3, '0');
+            const newKey = `MAQ-2025-${keyId}-${randomStr}`;
+            
+            // Calculate expiry date
+            const expiryDate = new Date();
+            expiryDate.setDate(expiryDate.getDate() + duration);
+            
+            // Add to valid keys
+            validKeys[newKey] = {
+                expires: expiryDate.toISOString().split('T')[0],
+                plan: plan,
+                user: user || 'Unknown',
+                created: new Date().toISOString().split('T')[0],
+                duration: duration
+            };
+            
+            currentGeneratedKey = newKey;
+            
+            // Display generated key
+            document.getElementById('generatedKey').innerHTML = `
+                <div style="background: white; padding: 15px; border-radius: 6px; border: 2px solid #28a745;">
+                    <h4 style="color: #28a745; margin-bottom: 10px;">✅ Key Generated Successfully!</h4>
+                    <p><strong>Key:</strong> <code style="background: #f8f9fa; padding: 5px; border-radius: 4px; font-size: 16px;">${newKey}</code></p>
+                    <p><strong>Plan:</strong> ${plan}</p>
+                    <p><strong>Valid Until:</strong> ${expiryDate.toDateString()}</p>
+                    <p><strong>Duration:</strong> ${duration} days</p>
+                    ${user ? `<p><strong>User:</strong> ${user}</p>` : ''}
+                </div>
+            `;
+            
+            document.getElementById('copyBtn').style.display = 'inline-block';
+            loadActiveKeys();
+            
+            // Clear form
+            document.getElementById('keyUser').value = '';
+        }
+
+        function copyKey() {
+            if (currentGeneratedKey) {
+                navigator.clipboard.writeText(currentGeneratedKey).then(() => {
+                    const btn = document.getElementById('copyBtn');
+                    const originalText = btn.textContent;
+                    btn.textContent = '✅ Copied!';
+                    btn.style.background = '#28a745';
+                    
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.style.background = '#6c757d';
+                    }, 2000);
+                });
+            }
+        }
+
+        function loadActiveKeys() {
+            const container = document.getElementById('activeKeys');
+            let html = '';
+            const now = new Date();
+            
+            Object.entries(validKeys).forEach(([key, data]) => {
+                const isExpired = new Date(data.expires) < now;
+                const daysLeft = Math.ceil((new Date(data.expires) - now) / (1000 * 60 * 60 * 24));
+                
+                html += `
+                    <div class="result-item ${isExpired ? 'fail' : ''}" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>${key}</strong><br>
+                            <small>Plan: ${data.plan} | User: ${data.user || 'Unknown'} | 
+                            ${isExpired ? 'EXPIRED' : `${daysLeft} days left`}</small>
+                        </div>
+                        <div>
+                            <button class="btn btn-remove" onclick="revokeKey('${key}')" style="margin-left: 10px;">
+                                Revoke
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            if (html === '') {
+                html = '<p style="text-align: center; color: #666;">No active keys</p>';
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function revokeKey(key) {
+            if (confirm(`Are you sure you want to revoke key: ${key}?`)) {
+                delete validKeys[key];
+                loadActiveKeys();
+                alert('Key revoked successfully');
+            }
+        }
+
+        function exitAdmin() {
+            document.getElementById('adminSection').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('authSection').style.display = 'block';
+            document.getElementById('logoutBtn').style.display = 'none';
+            
+            // Clear admin form
+            document.getElementById('adminPassword').value = '';
+            document.getElementById('generatedKey').innerHTML = '<p style="color: #666; text-align: center;">Generated keys will appear here</p>';
+            document.getElementById('copyBtn').style.display = 'none';
+            currentGeneratedKey = '';
+        }
+
+        function logout() {
+            document.getElementById('authSection').style.display = 'block';
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('adminSection').style.display = 'none';
+            document.getElementById('logoutBtn').style.display = 'none';
+            document.getElementById('accessKey').value = '';
+            document.getElementById('authError').style.display = 'none';
+            hideAdminLogin();
+        }
+
+        function initializeApp() {
+            // Add default criteria
+            addCriteria('Annual Revenue', 'range', '1M-50M');
+            addCriteria('Employee Count', 'range', '10-500');
+            addCriteria('Company Age', 'minimum', '2');
+        }
+
+        function addCriteria(name = '', type = 'minimum', value = '') {
+            const container = document.getElementById('criteriaContainer');
+            const criteriaId = 'criteria_' + Date.now();
+            
+            const criteriaHtml = `
+                <div class="criteria-item" id="${criteriaId}">
+                    <input type="text" placeholder="Criteria name (e.g., Revenue)" value="${name}" />
+                    <select onchange="updateCriteriaInput(this)">
+                        <option value="minimum" ${type === 'minimum' ? 'selected' : ''}>Minimum</option>
+                        <option value="maximum" ${type === 'maximum' ? 'selected' : ''}>Maximum</option>
+                        <option value="range" ${type === 'range' ? 'selected' : ''}>Range</option>
+                        <option value="equals" ${type === 'equals' ? 'selected' : ''}>Equals</option>
+                        <option value="contains" ${type === 'contains' ? 'selected' : ''}>Contains</option>
+                    </select>
+                    <input type="text" placeholder="Value" value="${value}" />
+                    <button class="btn btn-remove" onclick="removeCriteria('${criteriaId}')">×</button>
+                </div>
+            `;
+            
+            container.insertAdjacentHTML('beforeend', criteriaHtml);
+        }
+
+        function removeCriteria(id) {
+            document.getElementById(id).remove();
+        }
+
+        function updateCriteriaInput(select) {
+            const input = select.nextElementSibling;
+            const type = select.value;
+            
+            switch(type) {
+                case 'range':
+                    input.placeholder = 'e.g., 1M-50M or 10-500';
+                    break;
+                case 'minimum':
+                case 'maximum':
+                    input.placeholder = 'e.g., 1000000 or 50';
+                    break;
+                case 'equals':
+                    input.placeholder = 'Exact value';
+                    break;
+                case 'contains':
+                    input.placeholder = 'Text to search for';
+                    break;
+            }
+        }
+
+        async function qualifyCompany() {
+            const companyName = document.getElementById('companyName').value;
+            const country = document.getElementById('country').value;
+            
+            if (!companyName || !country) {
+                alert('Please enter company name and select country');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loadingSection').style.display = 'block';
+            document.getElementById('resultsSection').style.display = 'none';
+
+            // Collect criteria
+            const criteriaElements = document.querySelectorAll('.criteria-item');
+            const criteriaData = [];
+            
+            criteriaElements.forEach(element => {
+                const inputs = element.querySelectorAll('input');
+                const select = element.querySelector('select');
+                
+                if (inputs[0].value && inputs[1].value) {
+                    criteriaData.push({
+                        name: inputs[0].value,
+                        type: select.value,
+                        value: inputs[1].value
+                    });
+                }
+            });
+
+            try {
+                // Fetch real company data
+                const companyData = await fetchCompanyData(companyName, country);
+                const results = evaluateCriteria(companyData, criteriaData);
+                displayResults(companyData, results, criteriaData);
+                
+                document.getElementById('loadingSection').style.display = 'none';
+                document.getElementById('resultsSection').style.display = 'block';
+            } catch (error) {
+                console.error('Error qualifying company:', error);
+                alert('Error fetching company data. Please try again.');
+                document.getElementById('loadingSection').style.display = 'none';
+            }
+        }
+
+        function generateMockCompanyData(name, country) {
+            // Fallback mock data when APIs are not available
+            return {
+                name: name,
+                country: country,
+                revenue: Math.floor(Math.random() * 100000000) + 1000000,
+                employees: Math.floor(Math.random() * 1000) + 10,
+                founded: Math.floor(Math.random() * 30) + 1990,
+                industry: 'Technology',
+                status: 'Active',
+                verified: false, // Mark as unverified for mock data
+                source: 'Mock Data - Configure APIs for real data'
+            };
+        }
+
+        async function fetchCompanyData(companyName, country) {
+            try {
+                // Try Endole first for UK companies
+                if (country === 'UK' && API_CONFIG.endole.enabled) {
+                    return await fetchFromEndole(companyName);
+                }
+                
+                // Try Clearbit for international companies
+                if (API_CONFIG.clearbit.enabled) {
+                    return await fetchFromClearbit(companyName);
+                }
+                
+                // Try OpenCorporates as fallback
+                if (API_CONFIG.openCorporates.enabled) {
+                    return await fetchFromOpenCorporates(companyName, country);
+                }
+                
+                // Fallback to mock data if no APIs configured
+                console.warn('No APIs configured, using mock data');
+                return generateMockCompanyData(companyName, country);
+                
+            } catch (error) {
+                console.error('API Error:', error);
+                return generateMockCompanyData(companyName, country);
+            }
+        }
+
+        async function fetchFromEndole(companyName) {
+            const response = await fetch(`${API_CONFIG.endole.baseUrl}/companies/search?name=${encodeURIComponent(companyName)}`, {
+                headers: {
+                    'Authorization': `Bearer ${API_CONFIG.endole.key}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Endole API error: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            // Transform Endole data to our format
+            if (data.companies && data.companies.length > 0) {
+                const company = data.companies[0]; // Take first match
+                return {
+                    name: company.name,
+                    country: 'UK',
+                    revenue: company.turnover || 0,
+                    employees: company.employees || 0,
+                    founded: company.incorporation_date ? new Date(company.incorporation_date).getFullYear() : null,
+                    industry: company.sic_codes?.[0]?.description || 'Unknown',
+                    status: company.status,
+                    verified: true,
+                    registrationNumber: company.company_number,
+                    address: company.registered_address
+                };
+            }
+            
+            throw new Error('Company not found in Endole');
+        }
+
+        async function fetchFromClearbit(companyName) {
+            const response = await fetch(`${API_CONFIG.clearbit.baseUrl}/companies/find?name=${encodeURIComponent(companyName)}`, {
+                headers: {
+                    'Authorization': `Bearer ${API_CONFIG.clearbit.key}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Clearbit API error: ${response.status}`);
+            }
+            
+            const company = await response.json();
+            
+            return {
+                name: company.name,
+                country: company.geo?.country || 'Unknown',
+                revenue: company.metrics?.annualRevenue || 0,
+                employees: company.metrics?.employees || 0,
+                founded: company.foundedYear,
+                industry: company.category?.industry || 'Unknown',
+                status: 'Active',
+                verified: true,
+                website: company.domain
+            };
+        }
+
+        async function fetchFromOpenCorporates(companyName, country) {
+            const countryCode = country.toLowerCase();
+            const response = await fetch(`${API_CONFIG.openCorporates.baseUrl}/companies/search?q=${encodeURIComponent(companyName)}&jurisdiction_code=${countryCode}&api_token=${API_CONFIG.openCorporates.key}`);
+            
+            if (!response.ok) {
+                throw new Error(`OpenCorporates API error: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.results?.companies && data.results.companies.length > 0) {
+                const company = data.results.companies[0].company;
+                return {
+                    name: company.name,
+                    country: country,
+                    revenue: 0, // OpenCorporates doesn't provide revenue
+                    employees: 0, // OpenCorporates doesn't provide employee count
+                    founded: company.incorporation_date ? new Date(company.incorporation_date).getFullYear() : null,
+                    industry: 'Unknown',
+                    status: company.current_status,
+                    verified: true,
+                    registrationNumber: company.company_number
+                };
+            }
+            
+            throw new Error('Company not found in OpenCorporates');
+        }
+
+        function evaluateCriteria(companyData, criteria) {
+            const results = [];
+            let passed = 0;
+            
+            criteria.forEach(criterion => {
+                const result = {
+                    name: criterion.name,
+                    type: criterion.type,
+                    expected: criterion.value,
+                    actual: getCompanyValue(companyData, criterion.name),
+                    passed: false
+                };
+                
+                result.passed = evaluateSingleCriterion(result.actual, criterion.type, criterion.value);
+                if (result.passed) passed++;
+                
+                results.push(result);
+            });
+            
+            return {
+                results: results,
+                overallPassed: passed,
+                totalCriteria: criteria.length,
+                qualified: passed === criteria.length
+            };
+        }
+
+        function getCompanyValue(data, criterionName) {
+            const name = criterionName.toLowerCase();
+            if (name.includes('revenue')) return data.revenue;
+            if (name.includes('employee')) return data.employees;
+            if (name.includes('age')) return new Date().getFullYear() - data.founded;
+            if (name.includes('industry')) return data.industry;
+            return 'N/A';
+        }
+
+        function evaluateSingleCriterion(actual, type, expected) {
+            if (actual === 'N/A') return false;
+            
+            switch(type) {
+                case 'minimum':
+                    return parseFloat(actual) >= parseFloat(expected);
+                case 'maximum':
+                    return parseFloat(actual) <= parseFloat(expected);
+                case 'range':
+                    const [min, max] = expected.split('-').map(v => parseFloat(v.replace(/[^\d.]/g, '')));
+                    const value = parseFloat(actual);
+                    return value >= min && value <= max;
+                case 'equals':
+                    return actual.toString() === expected.toString();
+                case 'contains':
+                    return actual.toString().toLowerCase().includes(expected.toLowerCase());
+                default:
+                    return false;
+            }
+        }
+
+        function displayResults(companyData, evaluation, criteria) {
+            const resultContainer = document.getElementById('qualificationResult');
+            const detailsContainer = document.getElementById('detailedResults');
+            
+            // Overall result
+            const qualified = evaluation.qualified;
+            resultContainer.innerHTML = `
+                <div class="qualification-result ${qualified ? 'qualified' : 'not-qualified'}">
+                    ${qualified ? '✅ QUALIFIED' : '❌ NOT QUALIFIED'}
+                    <br>
+                    <small>${evaluation.overallPassed} of ${evaluation.totalCriteria} criteria met</small>
+                </div>
+            `;
+            
+            // Detailed results
+            let detailsHtml = '<h4>Company Data:</h4>';
+            detailsHtml += `
+                <div class="result-item">
+                    <strong>Company:</strong> ${companyData.name}<br>
+                    <strong>Revenue:</strong> $${companyData.revenue.toLocaleString()}<br>
+                    <strong>Employees:</strong> ${companyData.employees}<br>
+                    <strong>Founded:</strong> ${companyData.founded} (${new Date().getFullYear() - companyData.founded} years old)<br>
+                    <strong>Industry:</strong> ${companyData.industry}<br>
+                    <strong>Country:</strong> ${companyData.country}
+                </div>
+            `;
+            
+            detailsHtml += '<h4>Criteria Evaluation:</h4>';
+            evaluation.results.forEach(result => {
+                detailsHtml += `
+                    <div class="result-item ${result.passed ? '' : 'fail'}">
+                        <strong>${result.name}:</strong> ${result.passed ? '✅ PASS' : '❌ FAIL'}<br>
+                        <small>Expected: ${result.type} ${result.expected} | Actual: ${result.actual}</small>
+                    </div>
+                `;
+            });
+            
+            detailsContainer.innerHTML = detailsHtml;
+        }
+
+        // Initialize with authentication check
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('accessKey').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    authenticate();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
